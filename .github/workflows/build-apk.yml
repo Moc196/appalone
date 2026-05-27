@@ -30,7 +30,15 @@ jobs:
         run: tr -d '\r\n' < debug.keystore.base64 | base64 -d > debug.keystore
 
       - name: Build Debug APK
-        run: gradle assembleDebug
+        run: |
+          gradle assembleDebug > build_error.log 2>&1 || {
+            git config user.email "moc196@example.com"
+            git config user.name "Moc196"
+            git add build_error.log
+            git commit -m "ci: commit build error log"
+            git push origin main
+            exit 1
+          }
 
       - name: Create or Update Release
         uses: softprops/action-gh-release@v2
