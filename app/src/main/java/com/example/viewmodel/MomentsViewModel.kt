@@ -87,6 +87,34 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
     val activeLocation = MutableStateFlow("Private Spot")
     val selectedPresetName = MutableStateFlow("Sunbeam Window")
 
+    // Gamification & Challenges
+    val challengeList = listOf(
+        "Chụp một thứ gì đó màu vàng",
+        "Chụp góc làm việc hoặc học tập của bạn",
+        "Chụp bóng nắng chiếu qua cửa sổ",
+        "Chụp một cốc nước hoặc tách trà ấm",
+        "Chụp một cuốn sách bạn đang đọc",
+        "Chụp bầu trời lúc này",
+        "Chụp đôi giày/dép bạn đang mang"
+    )
+
+    val challengeRewards = mapOf(
+        "Chụp một thứ gì đó màu vàng" to "Amber Glow",
+        "Chụp góc làm việc hoặc học tập của bạn" to "Emerald Mood",
+        "Chụp bóng nắng chiếu qua cửa sổ" to "Warm Grain",
+        "Chụp một cốc nước hoặc tách trà ấm" to "Retro Dusk",
+        "Chụp một cuốn sách bạn đang đọc" to "Silver Velvet",
+        "Chụp bầu trời lúc này" to "Deep Moonlight",
+        "Chụp đôi giày/dép bạn đang mang" to "Cyberpunk Dusk"
+    )
+
+    val currentChallenge = MutableStateFlow<String?>(null)
+    val unlockedFilters = MutableStateFlow<Set<String>>(setOf("Standard Soft", "Vintage Chrome", "Lomo Glow", "Noir"))
+
+    // Time Capsule
+    val isTimeCapsule = MutableStateFlow(false)
+    val unlockDelayHours = MutableStateFlow(1) // Hours to lock, can be changed via UI dropdown
+
     // Active screen navigation
     private val _currentScreen = MutableStateFlow("Home")
     val currentScreen: StateFlow<String> = _currentScreen.asStateFlow()
@@ -243,6 +271,27 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
                 ImageStorage.saveBitmapToInternal(context, simulatedBmp, "sim_${slot.lowercase()}")
             }
 
+            // Gamification logic
+            val activeChallengeText = currentChallenge.value
+            val challengeRewardFilter = if (activeChallengeText != null) {
+                challengeRewards[activeChallengeText]
+            } else null
+
+            if (challengeRewardFilter != null) {
+                val currentUnlocked = unlockedFilters.value.toMutableSet()
+                if (currentUnlocked.add(challengeRewardFilter)) {
+                    unlockedFilters.value = currentUnlocked
+                }
+            }
+
+            // Simulate coordinates around Hanoi (e.g. Hoan Kiem Lake)
+            val randomLat = 21.0285 + (Math.random() - 0.5) * 0.03
+            val randomLng = 105.8542 + (Math.random() - 0.5) * 0.03
+
+            // Time capsule calculation
+            val locked = isTimeCapsule.value
+            val unTime = if (locked) System.currentTimeMillis() + (unlockDelayHours.value * 3600 * 1000L) else 0L
+
             val newMemory = Memory(
                 caption = caption,
                 mood = mood,
@@ -251,15 +300,38 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
                 photoPath = savedPath,
                 weather = weatherVal,
                 location = locationVal,
-                filterApplied = filter
+                filterApplied = filter,
+                latitude = randomLat,
+                longitude = randomLng,
+                isLocked = locked,
+                unlockTime = unTime,
+                challengeAssociated = activeChallengeText
             )
 
             repository.insert(newMemory)
 
-            // Reset forms and navigate back home
+            // Reset forms and navigate back home/screen
             withContext(Dispatchers.Main) {
                 resetCameraForm()
-                _currentScreen.value = "Home"
+                if (locked) {
+                    _currentScreen.value = "TimeCapsules"
+                } else {
+                    _currentScreen.value = "Home"
+                }
+            }
+        }
+    }
+
+    fun selectRandomChallenge() {
+        currentChallenge.value = challengeList.random()
+    }
+
+    fun unwrapTimeCapsule(memory: Memory) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val updated = memory.copy(isLocked = false, unlockTime = 0L)
+            repository.update(updated)
+            if (_selectedMemoryDetail.value?.id == memory.id) {
+                _selectedMemoryDetail.value = updated
             }
         }
     }
@@ -287,6 +359,7 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
         activeMood.value = "Peaceful"
         activeLocation.value = ""
         activeFilter.value = "Standard Soft"
+        isTimeCapsule.value = false
     }
 
     fun generateAuraInterpretation() {

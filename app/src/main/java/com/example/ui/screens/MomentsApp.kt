@@ -143,6 +143,9 @@ fun MomentsApp(
                         "Timeline" -> TimelineScreen(viewModel = viewModel)
                         "Calendar" -> CalendarScreen(viewModel = viewModel)
                         "Profile" -> ProfileScreen(viewModel = viewModel)
+                        "Map" -> MapScreen(viewModel = viewModel)
+                        "Challenges" -> ChallengesScreen(viewModel = viewModel)
+                        "TimeCapsules" -> TimeCapsulesScreen(viewModel = viewModel)
                     }
                 }
             }
@@ -420,6 +423,106 @@ fun HomeScreen(viewModel: MomentsViewModel) {
         }
 
         Spacer(modifier = Modifier.height(12.dp))
+
+        // Navigation Shortcut Chips for Gamification features
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Challenges Button
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { viewModel.navigateTo("Challenges") }
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = "Thử thách",
+                        tint = Color(0xFFD97706),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Thử thách",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C1917)
+                    )
+                }
+            }
+
+            // Map Button
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { viewModel.navigateTo("Map") }
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Bản đồ",
+                        tint = Color(0xFFEF4444),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Bản đồ",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C1917)
+                    )
+                }
+            }
+
+            // Time Capsules Button
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable { viewModel.navigateTo("TimeCapsules") }
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CardGiftcard,
+                        contentDescription = "Hộp quà",
+                        tint = Color(0xFF10B981),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Hộp quà",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1C1917)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Scrapbook Grid (2x2) of the 4 daily capture blocks with polaroid-card feel
         Text(
@@ -765,6 +868,9 @@ fun CameraScreen(viewModel: MomentsViewModel) {
     val mood by viewModel.activeMood.collectAsStateWithLifecycle()
     val location by viewModel.activeLocation.collectAsStateWithLifecycle()
     val presetName by viewModel.selectedPresetName.collectAsStateWithLifecycle()
+    val unlockedFilters by viewModel.unlockedFilters.collectAsStateWithLifecycle()
+    val isTimeCapsule by viewModel.isTimeCapsule.collectAsStateWithLifecycle()
+    val unlockDelayHours by viewModel.unlockDelayHours.collectAsStateWithLifecycle()
 
     val availablePresets = viewModel.presetAesthetics[slot] ?: emptyList()
 
@@ -952,16 +1058,17 @@ fun CameraScreen(viewModel: MomentsViewModel) {
         
         Spacer(modifier = Modifier.height(8.dp))
 
-        val filters = listOf("Standard Soft", "Vintage Chrome", "Lomo Glow", "Noir")
+        val filters = unlockedFilters.toList()
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             filters.forEach { filterOpt ->
                 val isSelected = filterOpt == filter
                 Box(
                     modifier = Modifier
-                        .weight(1f)
                         .border(
                             1.dp,
                             if (isSelected) Color(0xFF1E293B) else Color(0xFFE2E8F0),
@@ -972,13 +1079,13 @@ fun CameraScreen(viewModel: MomentsViewModel) {
                             RoundedCornerShape(8.dp)
                         )
                         .clickable { viewModel.activeFilter.value = filterOpt }
-                        .padding(vertical = 8.dp),
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = filterOpt.replace(" ", "\n"),
+                        text = filterOpt,
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
+                        fontSize = 11.sp,
                         textAlign = TextAlign.Center,
                         color = if (isSelected) Color.White else Color(0xFF64748B)
                     )
@@ -1059,6 +1166,93 @@ fun CameraScreen(viewModel: MomentsViewModel) {
                 modifier = Modifier.weight(1f).testTag("location_field"),
                 shape = RoundedCornerShape(8.dp)
             )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // TIME CAPSULE LOCK OPTION
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.5f)),
+            border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Khóa Hộp quà Thời gian",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1E293B)
+                    )
+                    Text(
+                        text = "Ảnh sẽ bị khóa và hiển thị dưới dạng quà tặng kèm đếm ngược.",
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 11.sp,
+                        color = Color(0xFF64748B)
+                    )
+                }
+                
+                Switch(
+                    checked = isTimeCapsule,
+                    onCheckedChange = { viewModel.isTimeCapsule.value = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF10B981),
+                        checkedTrackColor = Color(0xFFD1FAE5)
+                    )
+                )
+            }
+        }
+
+        if (isTimeCapsule) {
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Thời gian khóa hộp quà:",
+                    fontFamily = FontFamily.Serif,
+                    fontSize = 13.sp,
+                    color = Color(0xFF44403C)
+                )
+
+                var expandedDelay by remember { mutableStateOf(false) }
+                Box {
+                    Button(
+                        onClick = { expandedDelay = true },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF1C1917)),
+                        border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(text = "$unlockDelayHours giờ", fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+                    }
+                    
+                    DropdownMenu(
+                        expanded = expandedDelay,
+                        onDismissRequest = { expandedDelay = false }
+                    ) {
+                        listOf(1, 2, 4, 8, 12, 24).forEach { hours ->
+                            DropdownMenuItem(
+                                text = { Text("$hours giờ", fontFamily = FontFamily.Monospace) },
+                                onClick = {
+                                    viewModel.unlockDelayHours.value = hours
+                                    expandedDelay = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))

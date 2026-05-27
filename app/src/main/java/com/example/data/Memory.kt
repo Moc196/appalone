@@ -14,5 +14,10 @@ data class Memory(
     val weather: String = "Serene", // e.g. "Amber Sunbeams", "Fresh Air", "Peach Light", "Velvet Night"
     val location: String = "Private Space", // E.g., "Cozy Desk", "Window Seat"
     val filterApplied: String = "Nostalgia", // "Vintage Soft", "Warm Grain", "Lomo Glow", "Noir"
-    val notes: String = ""
+    val notes: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val isLocked: Boolean = false,
+    val unlockTime: Long = 0L,
+    val challengeAssociated: String? = null
 )
