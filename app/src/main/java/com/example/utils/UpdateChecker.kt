@@ -1,15 +1,11 @@
 package com.example.utils
 
 import android.util.Log
-import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 
-@JsonClass(generateAdapter = true)
 data class UpdateInfo(
     val versionCode: Int,
     val versionName: String,
@@ -19,10 +15,6 @@ data class UpdateInfo(
 
 object UpdateChecker {
     private val client = OkHttpClient()
-    private val moshi = Moshi.Builder()
-        .addLast(KotlinJsonAdapterFactory())
-        .build()
-    private val adapter = moshi.adapter(UpdateInfo::class.java)
 
     suspend fun checkUpdate(): UpdateInfo? = withContext(Dispatchers.IO) {
         try {
@@ -33,7 +25,33 @@ object UpdateChecker {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
                 val body = response.body?.string() ?: return@withContext null
-                return@withContext adapter.fromJson(body)
+                
+                // Manual lightweight parsing to avoid Moshi codegen/reflection dependency errors
+                val versionCode = body.substringAfter("\"versionCode\":")
+                    .substringBefore(",")
+                    .substringBefore("}")
+                    .trim()
+                    .toIntOrNull() ?: 0
+                
+                val versionName = body.substringAfter("\"versionName\":")
+                    .substringBefore(",")
+                    .substringBefore("}")
+                    .trim()
+                    .replace("\"", "")
+                
+                val updateUrl = body.substringAfter("\"updateUrl\":")
+                    .substringBefore(",")
+                    .substringBefore("}")
+                    .trim()
+                    .replace("\"", "")
+                    .replace("\\/", "/") // Unescape slashes if any
+                
+                val releaseNotes = body.substringAfter("\"releaseNotes\":")
+                    .substringBefore("}")
+                    .trim()
+                    .replace("\"", "")
+                
+                return@withContext UpdateInfo(versionCode, versionName, updateUrl, releaseNotes)
             }
         } catch (e: Exception) {
             Log.e("UpdateChecker", "Failed to check for update", e)
