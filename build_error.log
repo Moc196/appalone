@@ -11,15 +11,54 @@ For more details see https://docs.gradle.org/9.3.1/release-notes.html
 Starting a Gradle Daemon (subsequent builds will be faster)
 Calculating task graph as no cached configuration is available for tasks: assembleDebug
 
+> Configure project :app
+WARNING: The option setting 'android.disallowKotlinSourceSets=false' is experimental.
+The current default is 'true'.
+
+> Task :app:preBuild UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:generateDebugResources
+> Task :app:generateDebugBuildConfig
+> Task :app:packageDebugResources
+> Task :app:javaPreCompileDebug
+> Task :app:desugarDebugFileDependencies
+> Task :app:checkDebugDuplicateClasses
+> Task :app:processDebugNavigationResources
+> Task :app:mergeDebugAssets
+> Task :app:checkDebugAarMetadata
+> Task :app:mergeExtDexDebug
+> Task :app:compressDebugAssets
+> Task :app:mapDebugSourceSetPaths
+> Task :app:compileDebugNavigationResources
+> Task :app:mergeLibDexDebug
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:processDebugMainManifest
+> Task :app:processDebugManifest
+> Task :app:processDebugManifestForPackage
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeDebugNativeLibs
+> Task :app:stripDebugDebugSymbols
+> Task :app:validateSigningDebug
+> Task :app:writeDebugAppMetadata
+> Task :app:writeDebugSigningConfigVersions
+> Task :app:mergeDebugResources
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:processDebugResources
+> Task :app:kspDebugKotlin
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/components/UpdateDialog.kt:103:30 Unresolved reference 'border'.
+
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-A problem occurred configuring project ':app'.
-> Using kotlin.sourceSets DSL to add Kotlin sources is not allowed with built-in Kotlin.
-  Kotlin source set 'debug' contains: [/home/runner/work/appalone/appalone/app/build/generated/ksp/debug/kotlin, /home/runner/work/appalone/appalone/app/build/generated/ksp/debug/java]
-  Solution: Use android.sourceSets DSL instead.
-  For more information, see https://developer.android.com/r/tools/built-in-kotlin
-  To suppress this error, set android.disallowKotlinSourceSets=false in gradle.properties.
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
 
 * Try:
 > Run with --stacktrace option to get the stack trace.
@@ -27,5 +66,6 @@ A problem occurred configuring project ':app'.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 1m 15s
+BUILD FAILED in 3m 5s
+31 actionable tasks: 31 executed
 Configuration cache entry stored.
