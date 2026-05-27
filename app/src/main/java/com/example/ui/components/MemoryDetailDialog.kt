@@ -14,6 +14,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.WbSunny
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,9 +40,13 @@ import java.util.Locale
 fun MemoryDetailDialog(
     memory: Memory,
     onDismiss: () -> Unit,
-    onDelete: (Memory) -> Unit
+    onDelete: (Memory) -> Unit,
+    onUpdate: (Memory) -> Unit
 ) {
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
+    var editedCaption by remember(memory) { mutableStateOf(memory.caption) }
+    var editedNotes by remember(memory) { mutableStateOf(memory.notes) }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -54,7 +60,7 @@ fun MemoryDetailDialog(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "A preserved moment",
+                            text = if (isEditing) "Chỉnh sửa ký ức" else "A preserved moment",
                             fontFamily = FontFamily.Serif,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Medium,
@@ -63,25 +69,60 @@ fun MemoryDetailDialog(
                     },
                     navigationIcon = {
                         IconButton(
-                            onClick = onDismiss,
+                            onClick = {
+                                if (isEditing) {
+                                    isEditing = false
+                                    // Revert changes
+                                    editedCaption = memory.caption
+                                    editedNotes = memory.notes
+                                } else {
+                                    onDismiss()
+                                }
+                            },
                             modifier = Modifier.testTag("close_detail_button")
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close Detail"
+                                contentDescription = if (isEditing) "Hủy chỉnh sửa" else "Close Detail"
                             )
                         }
                     },
                     actions = {
-                        IconButton(
-                            onClick = { showDeleteConfirm = true },
-                            modifier = Modifier.testTag("delete_memory_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = "Delete Moment",
-                                tint = MaterialTheme.colorScheme.error
-                            )
+                        if (isEditing) {
+                            IconButton(
+                                onClick = {
+                                    onUpdate(memory.copy(caption = editedCaption, notes = editedNotes))
+                                    isEditing = false
+                                },
+                                modifier = Modifier.testTag("save_memory_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Lưu thay đổi",
+                                    tint = Color(0xFF10B981) // Green accent color
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = { isEditing = true },
+                                modifier = Modifier.testTag("edit_memory_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Chỉnh sửa ký ức",
+                                    tint = Color(0xFF64748B)
+                                )
+                            }
+                            IconButton(
+                                onClick = { showDeleteConfirm = true },
+                                modifier = Modifier.testTag("delete_memory_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.DeleteOutline,
+                                    contentDescription = "Delete Moment",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -174,14 +215,28 @@ fun MemoryDetailDialog(
 
                                     Spacer(modifier = Modifier.height(8.dp))
 
-                                    Text(
-                                        text = memory.caption,
-                                        fontFamily = FontFamily.Serif,
-                                        fontSize = 15.sp,
-                                        color = Color(0xFF1C1917), // stone-900
-                                        lineHeight = 22.sp,
-                                        modifier = Modifier.padding(bottom = 12.dp)
-                                    )
+                                    if (isEditing) {
+                                        OutlinedTextField(
+                                            value = editedCaption,
+                                            onValueChange = { editedCaption = it },
+                                            label = { Text("Mô tả ngắn") },
+                                            textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Serif, fontSize = 14.sp),
+                                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                                            colors = OutlinedTextFieldDefaults.colors(
+                                                focusedBorderColor = Color(0xFF1C1917),
+                                                unfocusedBorderColor = Color(0xFFE7E5E4)
+                                            )
+                                        )
+                                    } else {
+                                        Text(
+                                            text = memory.caption,
+                                            fontFamily = FontFamily.Serif,
+                                            fontSize = 15.sp,
+                                            color = Color(0xFF1C1917), // stone-900
+                                            lineHeight = 22.sp,
+                                            modifier = Modifier.padding(bottom = 12.dp)
+                                        )
+                                    }
 
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -217,6 +272,48 @@ fun MemoryDetailDialog(
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
+
+                    // Detailed annotations card
+                    Card(
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.55f)),
+                        border = BorderStroke(1.2.dp, Color.White.copy(alpha = 0.75f)),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = "Ghi chú & Chú thích".uppercase(),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF64748B),
+                                letterSpacing = 1.sp
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            if (isEditing) {
+                                OutlinedTextField(
+                                    value = editedNotes,
+                                    onValueChange = { editedNotes = it },
+                                    label = { Text("Hôm nay bạn đã làm gì?") },
+                                    textStyle = LocalTextStyle.current.copy(fontFamily = FontFamily.Serif, fontSize = 14.sp),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    minLines = 3,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = Color(0xFF1C1917),
+                                        unfocusedBorderColor = Color(0xFFE7E5E4)
+                                    )
+                                )
+                            } else {
+                                Text(
+                                    text = if (memory.notes.isNotEmpty()) memory.notes else "Chưa có ghi chú hoạt động nào cho khoảnh khắc này. Nhấn nút chỉnh sửa để thêm thông tin.",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF334155),
+                                    fontFamily = FontFamily.Serif,
+                                    lineHeight = 20.sp
+                                )
+                            }
+                        }
+                    }
 
                     // Preserved metadata notes - Frosted Glass panel
                     Card(

@@ -273,6 +273,15 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun updateMemory(memory: Memory) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.update(memory)
+            if (_selectedMemoryDetail.value?.id == memory.id) {
+                _selectedMemoryDetail.value = memory
+            }
+        }
+    }
+
     private fun resetCameraForm() {
         activeCaption.value = ""
         activeMood.value = "Peaceful"

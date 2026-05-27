@@ -97,7 +97,8 @@ fun MomentsApp(
         MemoryDetailDialog(
             memory = selectedMemory!!,
             onDismiss = { viewModel.selectMemory(null) },
-            onDelete = { memory -> viewModel.deleteMemory(memory) }
+            onDelete = { memory -> viewModel.deleteMemory(memory) },
+            onUpdate = { memory -> viewModel.updateMemory(memory) }
         )
     }
 
@@ -140,6 +141,7 @@ fun MomentsApp(
                         "Home" -> HomeScreen(viewModel = viewModel)
                         "Camera" -> CameraScreen(viewModel = viewModel)
                         "Timeline" -> TimelineScreen(viewModel = viewModel)
+                        "Calendar" -> CalendarScreen(viewModel = viewModel)
                         "Profile" -> ProfileScreen(viewModel = viewModel)
                     }
                 }
@@ -213,6 +215,21 @@ fun BottomNavigationBar(
             )
 
             NavigationBarItem(
+                selected = currentScreen == "Calendar",
+                onClick = { onNavigate("Calendar") },
+                icon = { Icon(if (currentScreen == "Calendar") Icons.Filled.DateRange else Icons.Outlined.DateRange, "Memory Calendar") },
+                label = { Text("Lịch", fontFamily = FontFamily.Serif, fontSize = 11.sp) },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = Color(0xFF1E293B),
+                    unselectedIconColor = Color(0xFF94A3B8),
+                    selectedTextColor = Color(0xFF1E293B),
+                    unselectedTextColor = Color(0xFF94A3B8),
+                    indicatorColor = Color.White.copy(alpha = 0.8f)
+                ),
+                modifier = Modifier.testTag("nav_calendar")
+            )
+
+            NavigationBarItem(
                 selected = currentScreen == "Profile",
                 onClick = { onNavigate("Profile") },
                 icon = { Icon(if (currentScreen == "Profile") Icons.Filled.Face else Icons.Outlined.Face, "Aura Weather Map") },
@@ -278,6 +295,20 @@ fun NavigationRailContainer(
                 onClick = { onNavigate("Timeline") },
                 icon = { Icon(if (currentScreen == "Timeline") Icons.AutoMirrored.Filled.List else Icons.Outlined.List, "Timeline") },
                 label = { Text("Timeline", fontFamily = FontFamily.Serif) },
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = Color(0xFF1E293B),
+                    unselectedIconColor = Color(0xFF94A3B8),
+                    selectedTextColor = Color(0xFF1E293B),
+                    unselectedTextColor = Color(0xFF94A3B8),
+                    indicatorColor = Color.White.copy(alpha = 0.8f)
+                )
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            NavigationRailItem(
+                selected = currentScreen == "Calendar",
+                onClick = { onNavigate("Calendar") },
+                icon = { Icon(if (currentScreen == "Calendar") Icons.Filled.DateRange else Icons.Outlined.DateRange, "Calendar") },
+                label = { Text("Calendar", fontFamily = FontFamily.Serif) },
                 colors = NavigationRailItemDefaults.colors(
                     selectedIconColor = Color(0xFF1E293B),
                     unselectedIconColor = Color(0xFF94A3B8),

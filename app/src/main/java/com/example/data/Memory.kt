@@ -13,5 +13,6 @@ data class Memory(
     val photoPath: String, // File URI path or preset asset name
     val weather: String = "Serene", // e.g. "Amber Sunbeams", "Fresh Air", "Peach Light", "Velvet Night"
     val location: String = "Private Space", // E.g., "Cozy Desk", "Window Seat"
-    val filterApplied: String = "Nostalgia" // "Vintage Soft", "Warm Grain", "Lomo Glow", "Noir"
+    val filterApplied: String = "Nostalgia", // "Vintage Soft", "Warm Grain", "Lomo Glow", "Noir"
+    val notes: String = ""
 )

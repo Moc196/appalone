@@ -20,4 +20,8 @@ class MemoryRepository(private val memoryDao: MemoryDao) {
     suspend fun delete(memory: Memory) {
         memoryDao.deleteMemory(memory)
     }
+
+    suspend fun update(memory: Memory) {
+        memoryDao.updateMemory(memory)
+    }
 }
