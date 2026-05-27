@@ -1,46 +1,84 @@
 package com.example.ui.screens
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoFixOff
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.viewmodel.MomentsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
-import kotlin.math.roundToInt
 
 // ──────────────── Data model ────────────────
 data class DrawStroke(
     val points: List<Offset>,
     val color: Color,
     val strokeWidth: Float,
-    val timestamp: Long          // millis when the stroke was begun
+    val timestamp: Long
 )
 
 // ──────────────── Serialization helpers ─────────────────────
@@ -92,64 +130,66 @@ object StrokeSerializer {
 
 // ──────────────── Color palette ─────────────────────────────
 private val paletteColors = listOf(
-    Color(0xFF1C1917),  // stone-900  (default ink)
-    Color(0xFFF43F5E),  // rose
-    Color(0xFF0EA5E9),  // sky blue
-    Color(0xFF10B981),  // emerald
-    Color(0xFFF59E0B),  // amber
-    Color(0xFF8B5CF6),  // violet
-    Color(0xFFEC4899),  // pink
-    Color(0xFF64748B),  // slate
+    Color(0xFF1C1917),
+    Color(0xFFF43F5E),
+    Color(0xFF0EA5E9),
+    Color(0xFF10B981),
+    Color(0xFFF59E0B),
+    Color(0xFF8B5CF6),
+    Color(0xFFEC4899),
+    Color(0xFF64748B),
     Color.White
 )
 
 private val brushSizes = listOf(4f, 8f, 14f, 22f)
 
+// ──────────────── Replay point helper ───────────────────────
+private data class ReplayPoint(
+    val color: Color,
+    val width: Float,
+    val point: Offset,
+    val strokeIdx: Int
+)
+
 // ──────────────── Main screen ───────────────────────────────
 @Composable
 fun SketchpadScreen(
     viewModel: MomentsViewModel,
-    memoryId: Int? = null   // If non-null, load existing strokeData from that memory
+    memoryId: Int? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val allMemories = androidx.lifecycle.compose.collectAsStateWithLifecycle(
-        viewModel.allMemories
-    ).value
+    val allMemories by viewModel.allMemories.collectAsStateWithLifecycle()
 
     // Load strokes from an existing memory if provided
-    val initialStrokes = remember(memoryId) {
+    val initialStrokes = remember(memoryId, allMemories) {
         if (memoryId != null) {
-            val mem = allMemories.firstOrNull { it.id == memoryId }
+            val mem = allMemories.firstOrNull { memory -> memory.id == memoryId }
             StrokeSerializer.fromJson(mem?.strokeData)
-        } else emptyList()
+        } else {
+            emptyList()
+        }
     }
 
-    // Mutable drawing state
     var strokes by remember { mutableStateOf(initialStrokes) }
     var currentPoints by remember { mutableStateOf<List<Offset>>(emptyList()) }
     var selectedColor by remember { mutableStateOf(Color(0xFF1C1917)) }
     var selectedSize by remember { mutableStateOf(4f) }
     var isEraser by remember { mutableStateOf(false) }
-
-    // Replay state
     var isReplaying by remember { mutableStateOf(false) }
-    var replayProgress by remember { mutableStateOf(0) }   // index into flat point list
+    var replayProgress by remember { mutableStateOf(0) }
     var snackMessage by remember { mutableStateOf<String?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Show snackbar when message is set
     LaunchedEffect(snackMessage) {
-        snackMessage?.let {
-            snackbarHostState.showSnackbar(it)
+        snackMessage?.let { msg ->
+            snackbarHostState.showSnackbar(msg)
             snackMessage = null
         }
     }
 
-    // Flatten all strokes into a single list of (color, width, point) triples for replay
-    data class ReplayPoint(val color: Color, val width: Float, val point: Offset, val strokeIdx: Int)
-
+    // Flatten all strokes → list of ReplayPoints for smooth replay
     val flatPoints: List<ReplayPoint> = remember(strokes) {
         val result = mutableListOf<ReplayPoint>()
         strokes.forEachIndexed { idx, stroke ->
@@ -160,22 +200,23 @@ fun SketchpadScreen(
         result
     }
 
-    // Replay strokes rendered up to replayProgress
+    // Rebuild visible strokes up to replayProgress during replay
     val replayStrokes: List<DrawStroke> = remember(replayProgress, strokes) {
         if (!isReplaying) return@remember strokes
-        val grouped = mutableListOf<DrawStroke>()
         val groups = mutableMapOf<Int, MutableList<Offset>>()
         val meta = mutableMapOf<Int, Pair<Color, Float>>()
-        for (i in 0 until minOf(replayProgress, flatPoints.size)) {
+        val limit = minOf(replayProgress, flatPoints.size)
+        for (i in 0 until limit) {
             val rp = flatPoints[i]
             groups.getOrPut(rp.strokeIdx) { mutableListOf() }.add(rp.point)
             meta[rp.strokeIdx] = Pair(rp.color, rp.width)
         }
-        groups.entries.sortedBy { it.key }.forEach { (idx, pts) ->
-            val (color, width) = meta[idx]!!
-            grouped.add(DrawStroke(pts, color, width, 0L))
+        val result = mutableListOf<DrawStroke>()
+        groups.entries.sortedBy { entry -> entry.key }.forEach { entry ->
+            val colorAndWidth = meta[entry.key]!!
+            result.add(DrawStroke(entry.value, colorAndWidth.first, colorAndWidth.second, 0L))
         }
-        grouped
+        result
     }
 
     val displayedStrokes = if (isReplaying) replayStrokes else strokes
@@ -200,12 +241,10 @@ fun SketchpadScreen(
                     scope.launch {
                         val total = flatPoints.size
                         while (replayProgress < total) {
-                            // Adaptive speed: faster for many points
-                            val delay = if (total > 800) 4L else if (total > 300) 7L else 12L
-                            replayProgress += maxOf(1, total / 600)
-                            delay(delay)
+                            val delayMs = if (total > 800) 4L else if (total > 300) 7L else 12L
+                            replayProgress = minOf(replayProgress + maxOf(1, total / 600), total)
+                            delay(delayMs)
                         }
-                        replayProgress = total
                         delay(300)
                         isReplaying = false
                     }
@@ -213,13 +252,12 @@ fun SketchpadScreen(
                 onSave = {
                     val json = StrokeSerializer.toJson(strokes)
                     if (memoryId != null) {
-                        val mem = allMemories.firstOrNull { it.id == memoryId }
+                        val mem = allMemories.firstOrNull { memory -> memory.id == memoryId }
                         if (mem != null) {
                             viewModel.updateMemory(mem.copy(strokeData = json))
                             snackMessage = "Đã lưu bản phác thảo vào ký ức!"
                         }
                     } else {
-                        // Save as standalone sketch memory
                         viewModel.saveSketchMemory(context, json)
                         snackMessage = "Đã lưu bản phác thảo mới!"
                     }
@@ -233,8 +271,7 @@ fun SketchpadScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-
-            // ── Canvas Area ──────────────────────────────────────────
+            // ── Canvas Area ───────────────────────────────────
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -244,7 +281,7 @@ fun SketchpadScreen(
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color.White)
             ) {
-                Canvas(
+                androidx.compose.foundation.Canvas(
                     modifier = Modifier
                         .fillMaxSize()
                         .pointerInput(isEraser, selectedColor, selectedSize, isReplaying) {
@@ -271,27 +308,25 @@ fun SketchpadScreen(
                             )
                         }
                 ) {
-                    // Draw paper grid background
                     drawPaperGrid()
 
-                    // Draw committed strokes (or replay strokes)
                     for (stroke in displayedStrokes) {
                         drawStrokePath(stroke)
                     }
 
-                    // Draw in-progress stroke
                     if (currentPoints.size >= 2) {
-                        val stroke = DrawStroke(
-                            points = currentPoints,
-                            color = if (isEraser) Color.White else selectedColor,
-                            strokeWidth = if (isEraser) selectedSize * 3f else selectedSize,
-                            timestamp = 0L
+                        drawStrokePath(
+                            DrawStroke(
+                                points = currentPoints,
+                                color = if (isEraser) Color.White else selectedColor,
+                                strokeWidth = if (isEraser) selectedSize * 3f else selectedSize,
+                                timestamp = 0L
+                            )
                         )
-                        drawStrokePath(stroke)
                     }
                 }
 
-                // Replay badge overlay
+                // Replay badge
                 if (isReplaying) {
                     Box(
                         modifier = Modifier
@@ -338,19 +373,19 @@ fun SketchpadScreen(
                                 color = Color(0xFFD6D3D1),
                                 fontFamily = FontFamily.Serif,
                                 fontSize = 15.sp,
-                                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                                fontStyle = FontStyle.Italic
                             )
                         }
                     }
                 }
             }
 
-            // ── Toolbar ───────────────────────────────────────────────
+            // ── Drawing Toolbar ───────────────────────────────
             DrawingToolbar(
                 selectedColor = selectedColor,
-                onColorSelected = { selectedColor = it; isEraser = false },
+                onColorSelected = { color -> selectedColor = color; isEraser = false },
                 selectedSize = selectedSize,
-                onSizeSelected = { selectedSize = it },
+                onSizeSelected = { size -> selectedSize = size },
                 isEraser = isEraser,
                 onEraserToggle = { isEraser = !isEraser },
                 onUndo = {
@@ -396,26 +431,21 @@ private fun SketchpadTopBar(
         },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color(0xFF1C1917))
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color(0xFF1C1917))
             }
         },
         actions = {
-            // Undo-all / Clear
             IconButton(onClick = onClear, enabled = !isReplaying) {
                 Icon(Icons.Default.DeleteOutline, contentDescription = "Clear all", tint = Color(0xFFEF4444))
             }
-            // Replay
             IconButton(onClick = onReplay, enabled = !isReplaying) {
                 Icon(Icons.Default.PlayCircle, contentDescription = "Replay", tint = Color(0xFF8B5CF6))
             }
-            // Save
             IconButton(onClick = onSave, enabled = !isReplaying) {
                 Icon(Icons.Default.Save, contentDescription = "Save sketch", tint = Color(0xFF10B981))
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFFFAF9F6)
-        )
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFFAF9F6))
     )
 }
 
@@ -441,7 +471,7 @@ private fun DrawingToolbar(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
 
-            // ── Color Palette ─────────────────────────────────
+            // Color Palette Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -475,7 +505,7 @@ private fun DrawingToolbar(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // ── Brush Size ────────────────────────────────────
+            // Brush Size + Controls Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -516,7 +546,7 @@ private fun DrawingToolbar(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // Eraser button
+                // Eraser
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -542,7 +572,7 @@ private fun DrawingToolbar(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // Undo button
+                // Undo
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -560,7 +590,6 @@ private fun DrawingToolbar(
                 }
             }
 
-            // ── Stroke counter ────────────────────────────────
             if (strokeCount > 0) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -576,7 +605,7 @@ private fun DrawingToolbar(
     }
 }
 
-// ──────────────── Canvas helpers ────────────────────────────
+// ──────────────── Canvas draw helpers ───────────────────────
 private fun DrawScope.drawPaperGrid() {
     val gridColor = Color(0xFFF1F0EE)
     val step = 28f
@@ -594,7 +623,6 @@ private fun DrawScope.drawPaperGrid() {
 
 private fun DrawScope.drawStrokePath(stroke: DrawStroke) {
     if (stroke.points.size < 2) {
-        // Single dot
         if (stroke.points.isNotEmpty()) {
             drawCircle(
                 color = stroke.color,
@@ -609,7 +637,6 @@ private fun DrawScope.drawStrokePath(stroke: DrawStroke) {
     for (i in 1 until stroke.points.size) {
         val prev = stroke.points[i - 1]
         val curr = stroke.points[i]
-        // Smooth catmull-rom-like midpoint curve
         val midX = (prev.x + curr.x) / 2f
         val midY = (prev.y + curr.y) / 2f
         path.quadraticBezierTo(prev.x, prev.y, midX, midY)
