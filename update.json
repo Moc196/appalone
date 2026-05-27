@@ -1,6 +1,6 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1",
+  "versionCode": 3,
+  "versionName": "1.2",
   "updateUrl": "https://github.com/Moc196/appalone/releases/download/latest/app-debug.apk",
-  "releaseNotes": "Thêm tính năng Lịch hiển thị hình ảnh và ghi chú hoạt động chi tiết cho từng ảnh chụp."
+  "releaseNotes": "v1.2 – Sketchpad: vẽ tay tự do, phát lại nét vẽ (Replay), bảng màu 9 màu, tẩy, undo. Lịch sử phác thảo được lưu cùng ký ức. Giao diện trang chủ nâng cấp thành lưới 2x2."
 }
