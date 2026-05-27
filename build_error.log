@@ -27,31 +27,37 @@ The current default is 'true'.
 > Task :app:checkDebugDuplicateClasses
 > Task :app:processDebugNavigationResources
 > Task :app:mergeDebugAssets
-> Task :app:checkDebugAarMetadata
-> Task :app:mergeExtDexDebug
 > Task :app:compressDebugAssets
+> Task :app:parseDebugLocalResources
+> Task :app:generateDebugRFile
+> Task :app:checkDebugAarMetadata
 > Task :app:mapDebugSourceSetPaths
 > Task :app:compileDebugNavigationResources
+> Task :app:mergeExtDexDebug
 > Task :app:mergeLibDexDebug
+> Task :app:kspDebugKotlin
+> Task :app:mergeDebugResources
 > Task :app:createDebugCompatibleScreenManifests
 > Task :app:extractDeepLinksDebug
+> Task :app:mergeDebugJniLibFolders
+> Task :app:mergeDebugNativeLibs
 > Task :app:processDebugMainManifest
 > Task :app:processDebugManifest
 > Task :app:processDebugManifestForPackage
-> Task :app:mergeDebugJniLibFolders
-> Task :app:mergeDebugNativeLibs
 > Task :app:stripDebugDebugSymbols
 > Task :app:validateSigningDebug
 > Task :app:writeDebugAppMetadata
 > Task :app:writeDebugSigningConfigVersions
-> Task :app:mergeDebugResources
-> Task :app:parseDebugLocalResources
-> Task :app:generateDebugRFile
 > Task :app:processDebugResources
-> Task :app:kspDebugKotlin
 
 > Task :app:compileDebugKotlin FAILED
-e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/components/UpdateDialog.kt:103:30 Unresolved reference 'border'.
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/screens/SketchpadScreen.kt:116:50 Unresolved reference 'collectAsStateWithLifecycle'.
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/screens/SketchpadScreen.kt:123:49 Unresolved reference 'it'.
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/screens/SketchpadScreen.kt:124:44 Unresolved reference 'strokeData'.
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/screens/SketchpadScreen.kt:216:61 Unresolved reference 'it'.
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/screens/SketchpadScreen.kt:218:52 Argument type mismatch: actual type is 'AnimationState<Float, AnimationVector1D>', but 'Memory' was expected.
+e: file:///home/runner/work/appalone/appalone/app/src/main/java/com/example/ui/screens/SketchpadScreen.kt:218:56 Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun AnimationState<Float, AnimationVector1D>.copy(value: Float = ..., velocity: Float = ..., lastFrameTimeNanos: Long = ..., finishedTimeNanos: Long = ..., isRunning: Boolean = ...): AnimationState<Float, AnimationVector1D>
 
 FAILURE: Build failed with an exception.
 
@@ -66,6 +72,6 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 3m 5s
+BUILD FAILED in 3m 13s
 31 actionable tasks: 31 executed
 Configuration cache entry stored.
