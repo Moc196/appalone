@@ -354,6 +354,30 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun saveSketchMemory(context: Context, strokeJson: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val slot = targetCaptureSlot.value
+            val caption = activeCaption.value.ifBlank { "Khoảnh khắc phác thảo." }
+            val mood = activeMood.value
+            val sketchMemory = Memory(
+                caption = caption,
+                mood = mood,
+                timestamp = System.currentTimeMillis(),
+                timeOfDay = slot,
+                photoPath = "sketch_only",
+                weather = "Quiet Light",
+                location = "Sketchpad",
+                filterApplied = "Standard Soft",
+                strokeData = strokeJson
+            )
+            repository.insert(sketchMemory)
+            withContext(Dispatchers.Main) {
+                _currentScreen.value = "Home"
+            }
+        }
+    }
+
+
     private fun resetCameraForm() {
         activeCaption.value = ""
         activeMood.value = "Peaceful"

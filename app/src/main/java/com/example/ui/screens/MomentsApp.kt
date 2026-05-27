@@ -146,6 +146,7 @@ fun MomentsApp(
                         "Map" -> MapScreen(viewModel = viewModel)
                         "Challenges" -> ChallengesScreen(viewModel = viewModel)
                         "TimeCapsules" -> TimeCapsulesScreen(viewModel = viewModel)
+                        "Sketchpad" -> SketchpadScreen(viewModel = viewModel)
                     }
                 }
             }
@@ -424,103 +425,144 @@ fun HomeScreen(viewModel: MomentsViewModel) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Navigation Shortcut Chips for Gamification features
-        Row(
+        // Navigation Shortcut Chips for Gamification features – 2x2 grid
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Challenges Button
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
-                border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { viewModel.navigateTo("Challenges") }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Challenges Button
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                    border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { viewModel.navigateTo("Challenges") }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = "Thử thách",
-                        tint = Color(0xFFD97706),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Thử thách",
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1C1917)
-                    )
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "Thử thách",
+                            tint = Color(0xFFD97706),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Thử thách",
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1917)
+                        )
+                    }
+                }
+
+                // Map Button
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                    border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { viewModel.navigateTo("Map") }
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Bản đồ",
+                            tint = Color(0xFFEF4444),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Bản đồ",
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1917)
+                        )
+                    }
                 }
             }
 
-            // Map Button
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
-                border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { viewModel.navigateTo("Map") }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Time Capsules Button
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                    border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { viewModel.navigateTo("TimeCapsules") }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Bản đồ",
-                        tint = Color(0xFFEF4444),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Bản đồ",
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1C1917)
-                    )
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CardGiftcard,
+                            contentDescription = "Hộp quà",
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Hộp quà",
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1917)
+                        )
+                    }
                 }
-            }
 
-            // Time Capsules Button
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
-                border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
-                modifier = Modifier
-                    .weight(1f)
-                    .clickable { viewModel.navigateTo("TimeCapsules") }
-            ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Sketchpad Button
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.8f)),
+                    border = BorderStroke(1.dp, Color(0xFFE7E5E4)),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { viewModel.navigateTo("Sketchpad") }
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CardGiftcard,
-                        contentDescription = "Hộp quà",
-                        tint = Color(0xFF10B981),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Hộp quà",
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1C1917)
-                    )
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Phác thảo",
+                            tint = Color(0xFF8B5CF6),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Phác thảo",
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1C1917)
+                        )
+                    }
                 }
             }
         }
+
 
         Spacer(modifier = Modifier.height(16.dp))
 

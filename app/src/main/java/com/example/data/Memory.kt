@@ -19,5 +19,6 @@ data class Memory(
     val longitude: Double? = null,
     val isLocked: Boolean = false,
     val unlockTime: Long = 0L,
-    val challengeAssociated: String? = null
+    val challengeAssociated: String? = null,
+    val strokeData: String? = null
 )
