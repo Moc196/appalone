@@ -1,6 +1,6 @@
 {
-  "versionCode": 1,
-  "versionName": "1.0",
+  "versionCode": 2,
+  "versionName": "1.1",
   "updateUrl": "https://github.com/Moc196/appalone/releases/download/latest/app-debug.apk",
-  "releaseNotes": "Phiên bản đầu tiên của Moments App!"
+  "releaseNotes": "Thêm tính năng Lịch hiển thị hình ảnh và ghi chú hoạt động chi tiết cho từng ảnh chụp."
 }
