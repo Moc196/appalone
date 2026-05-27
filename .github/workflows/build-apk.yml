@@ -27,7 +27,7 @@ jobs:
           gradle-version: 8.10.2
 
       - name: Decode Keystore
-        run: base64 --decode debug.keystore.base64 > debug.keystore
+        run: tr -d '\r\n' < debug.keystore.base64 | base64 -d > debug.keystore
 
       - name: Build Debug APK
         run: gradle assembleDebug
