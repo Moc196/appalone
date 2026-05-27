@@ -1,0 +1,32 @@
+
+Welcome to Gradle 8.10.2!
+
+Here are the highlights of this release:
+ - Support for Java 23
+ - Faster configuration cache
+ - Better configuration cache reports
+
+For more details see https://docs.gradle.org/8.10.2/release-notes.html
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+Calculating task graph as no cached configuration is available for tasks: assembleDebug
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/home/runner/work/appalone/appalone/app/build.gradle.kts' line: 1
+
+* What went wrong:
+An exception occurred applying plugin request [id: 'com.android.application', version: '9.1.1']
+> Failed to apply plugin 'com.android.internal.version-check'.
+   > Minimum supported Gradle version is 9.3.1. Current version is 8.10.2.
+     Try updating the 'distributionUrl' property in /home/runner/work/appalone/appalone/gradle/wrapper/gradle-wrapper.properties to 'gradle-9.3.1-bin.zip'.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 53s
+Configuration cache entry stored.
