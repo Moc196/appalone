@@ -91,6 +91,13 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
     private val _currentScreen = MutableStateFlow("Home")
     val currentScreen: StateFlow<String> = _currentScreen.asStateFlow()
 
+    // Session state
+    private val _isUserLoggedIn = MutableStateFlow(false)
+    val isUserLoggedIn: StateFlow<Boolean> = _isUserLoggedIn.asStateFlow()
+
+    private val _loggedInUserEmail = MutableStateFlow("")
+    val loggedInUserEmail: StateFlow<String> = _loggedInUserEmail.asStateFlow()
+
     // Predefined nostalgic aesthetic preset cards for mock capture
     val presetAesthetics = mapOf(
         "Morning" to listOf(
@@ -116,6 +123,11 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
     )
 
     init {
+        // Load persistent login session
+        val sharedPrefs = application.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        _isUserLoggedIn.value = sharedPrefs.getBoolean("is_logged_in", false)
+        _loggedInUserEmail.value = sharedPrefs.getString("email", "") ?: ""
+
         // Pre-populate database with some evocative aesthetic memory items on first launching
         // so the user starts with a gorgeous-looking nostalgic layout!
         viewModelScope.launch(Dispatchers.IO) {
@@ -291,6 +303,28 @@ class MomentsViewModel(application: Application) : AndroidViewModel(application)
             _currentAuraReflection.value = resultText
             _isAuraLoading.value = false
         }
+    }
+
+    fun login(email: String, password: String): Boolean {
+        if (email.contains("@") && password.length >= 6) {
+            val sharedPrefs = getApplication<Application>().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+            sharedPrefs.edit()
+                .putBoolean("is_logged_in", true)
+                .putString("email", email)
+                .apply()
+            _isUserLoggedIn.value = true
+            _loggedInUserEmail.value = email
+            return true
+        }
+        return false
+    }
+
+    fun logout() {
+        val sharedPrefs = getApplication<Application>().getSharedPreferences("user_session", Context.MODE_PRIVATE)
+        sharedPrefs.edit().clear().apply()
+        _isUserLoggedIn.value = false
+        _loggedInUserEmail.value = ""
+        _currentScreen.value = "Home"
     }
 }
 

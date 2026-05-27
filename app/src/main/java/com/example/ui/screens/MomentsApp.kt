@@ -70,6 +70,12 @@ fun MomentsApp(
     val selectedMemory by viewModel.selectedMemoryDetail.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    val isUserLoggedIn by viewModel.isUserLoggedIn.collectAsStateWithLifecycle()
+    if (!isUserLoggedIn) {
+        LoginScreen(viewModel = viewModel)
+        return
+    }
+
     // Check for updates on startup
     var updateInfoState by remember { mutableStateOf<UpdateInfo?>(null) }
     LaunchedEffect(Unit) {
@@ -740,6 +746,17 @@ fun CameraScreen(viewModel: MomentsViewModel) {
         }
     }
 
+    // Camera permission request launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            realPhotoLauncher.launch()
+        } else {
+            android.widget.Toast.makeText(context, "Quyền truy cập máy ảnh bị từ chối", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -817,7 +834,18 @@ fun CameraScreen(viewModel: MomentsViewModel) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Button(
-                onClick = { realPhotoLauncher.launch() },
+                onClick = {
+                    val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.CAMERA
+                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+
+                    if (hasPermission) {
+                        realPhotoLauncher.launch()
+                    } else {
+                        cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0F172A)),
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.weight(1f).testTag("device_camera_button")
@@ -1390,6 +1418,25 @@ fun ProfileScreen(viewModel: MomentsViewModel) {
                     }
                 }
             }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Logout Button
+        Button(
+            onClick = { viewModel.logout() },
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444)),
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+        ) {
+            Text(
+                text = "Đăng xuất",
+                fontFamily = FontFamily.Serif,
+                fontSize = 13.sp,
+                color = Color.White
+            )
         }
         
         Spacer(modifier = Modifier.height(48.dp))
